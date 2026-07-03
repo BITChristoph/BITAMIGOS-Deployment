@@ -4,24 +4,39 @@ namespace BITAMIGOS.Deployment.Services;
 
 public static class BCDBootService
 {
-    public static bool CreateBoot(
-        string windowsDrive,
-        string efiDrive)
+    public static bool CreateBoot(string windowsDrive, string efiDrive)
     {
         Logger.Info("Erstelle Bootloader...");
 
-        var result = ProcessRunner.Run(
-            "bcdboot.exe",
-            $"{windowsDrive}\\Windows /s {efiDrive} /f UEFI");
-
-        if (result.Success)
+        if (!Directory.Exists(windowsDrive + @"\Windows"))
         {
-            Logger.Success("Bootloader erfolgreich erstellt.");
-            return true;
+            Logger.Error($"Windows-Ordner nicht gefunden: {windowsDrive}\\Windows");
+            return false;
         }
 
-        Logger.Error("Bootloader konnte nicht erstellt werden.");
+        if (!Directory.Exists(efiDrive + @"\"))
+        {
+            Logger.Error($"EFI-Partition nicht gefunden: {efiDrive}");
+            return false;
+        }
 
-        return false;
+        string arguments =
+            $"{windowsDrive}\\Windows /s {efiDrive} /f UEFI";
+
+        Logger.Info($"bcdboot.exe {arguments}");
+
+        var result = ProcessRunner.Run(
+            "bcdboot.exe",
+            arguments);
+
+        if (!result.Success)
+        {
+            Logger.Error("BCDBoot fehlgeschlagen.");
+            return false;
+        }
+
+        Logger.Success("Bootloader erfolgreich erstellt.");
+
+        return true;
     }
 }

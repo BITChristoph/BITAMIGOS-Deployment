@@ -84,9 +84,16 @@ public static class DeployManager
             Console.ReadKey();
             return;
         }
-
+        Logger.Info("Erstelle Bootloader...");
+        if (!BCDBootService.CreateBoot(
+        windowsLetter + ":",
+        "S:"))
+        {
+            Console.ReadKey();
+            return;
+        }
         Logger.Success("Deployment erfolgreich abgeschlossen.");
 
-        Console.ReadKey();
+        RestartHelper.AskForRestart();
     }
 }
